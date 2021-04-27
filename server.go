@@ -27,7 +27,7 @@ type Server struct {
 func New(options *Options) (svr *Server, err error) {
 	engine := gin.New()
 
-	listener, err := net.Listen("tcp", options.addr)
+	listener, err := net.Listen("tcp", options.config.ListenAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func New(options *Options) (svr *Server, err error) {
 	}
 
 	if options.logger != nil {
-		options.logger.Info("running", zap.String("module", "server"), zap.String("addr", options.addr))
+		options.logger.Info("running", zap.String("module", "server"), zap.String("addr", options.config.ListenAddress))
 	}
 
 	if options.health != nil {
@@ -65,8 +65,8 @@ func (svr *Server) Close() error {
 		svr.options.health.SetSystemState("server", false)
 	}
 
-	if svr.options.warningDuration > time.Duration(0) {
-		time.Sleep(svr.options.warningDuration)
+	if svr.options.config.WarningDuration > time.Duration(0) {
+		time.Sleep(svr.options.config.WarningDuration)
 	}
 
 	if svr.options.logger != nil {
@@ -74,9 +74,9 @@ func (svr *Server) Close() error {
 	}
 
 	ctx := context.Background()
-	if svr.options.shutdownDuration > time.Duration(0) {
+	if svr.options.config.ShutdownDuration > time.Duration(0) {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, svr.options.shutdownDuration)
+		ctx, cancel = context.WithTimeout(ctx, svr.options.config.ShutdownDuration)
 		defer cancel()
 	}
 
